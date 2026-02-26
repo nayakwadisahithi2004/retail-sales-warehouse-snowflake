@@ -2,9 +2,9 @@ desc table snowflake_sample_data.TPCDS_SF100TCL.CUSTOMER;
 
 desc table snowflake_sample_data.tpcds_sf100tcl.customer_address;
 
-use warehouse compute_wh;
+USE WAREHOUSE COFFEE_SHOP_WH;
 
-use database snowflake_learning_db;
+USE DATABASE SNOWFLAKE_LEARNING_DB;
 
 create or replace table silver.customer_dim(
        customer_sk number autoincrement,
