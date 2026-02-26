@@ -6,7 +6,7 @@ End-to-end SQL Data Warehouse project using Snowflake, TPCDS dataset, Bronze-Sil
 
 # Retail Sales Intelligence Warehouse (Snowflake)
 
-## Overview
+## Overview snowflake
 End-to-end SQL Data Warehouse project using Snowflake and TPCDS dataset.
 
 ## Architecture

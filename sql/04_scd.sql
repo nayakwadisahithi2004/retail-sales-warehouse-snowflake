@@ -39,10 +39,6 @@ where customer_id=83369285;
 
 select * from silver.customer_stage where customer_id=83369285;
 
---implementing stage 2 using merge
-
-  
-
 SELECT *
 FROM silver.customer_dim
 WHERE customer_id = 83369285

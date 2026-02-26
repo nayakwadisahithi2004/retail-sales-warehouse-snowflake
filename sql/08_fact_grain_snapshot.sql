@@ -8,3 +8,4 @@ SELECT
     SUM(sales_price)AS total_sales
 FROM SILVER.FACT_SALES
 GROUP BY sales_month;
+

@@ -74,3 +74,5 @@ JOIN SILVER.CUSTOMER_DIM d
     AND (f.transaction_date < d.end_date OR d.end_date IS NULL);
 
     SELECT * FROM SILVER.FACT_SALES;
+
+   
