@@ -1,29 +1,31 @@
-use warehouse compute_wh;
-use database snowflake_learning_db;
+USE WAREHOUSE COMPUTE_WH;
+USE DATABASE SNOWFLAKE_LEARNING_DB;
 
-create schema if not exists silver;
-create or replace table silver.store_sales_clean as 
-select
-  ss.ss_sold_date_sk,
-  ss.ss_store_sk,
-  ss.ss_customer_sk,
-  ss.ss_quantity,
-  ss.ss_sales_price
-  from bronze.store_sales_raw ss
-  join snowflake_sample_data.tpcds_sf100tcl.date_dim d
-  on ss.ss_sold_date_sk=d.d_date_sk
-  where d.d_year between 1998 and 1999 
-  and
-  ss.ss_sales_price is not null
-  and ss.ss_quantity > 0;
+CREATE SCHEMA IF NOT EXISTS SILVER;
 
-   desc table silver.store_sales_clean;
+CREATE OR REPLACE TABLE SILVER.STORE_SALES_CLEAN AS
+SELECT SS.SS_SOLD_DATE_SK,
+    SS.SS_STORE_SK,
+    SS.SS_CUSTOMER_SK,
+    SS.SS_QUANTITY,
+    SS.SS_SALES_PRICE
+FROM BRONZE.STORE_SALES SS
+JOIN SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.DATE_DIM D
+    ON SS.SS_SOLD_DATE_SK = D.D_DATE_SK
+WHERE D.D_YEAR BETWEEN 1998 AND 1999
+    AND SS.SS_SALES_PRICE IS NOT NULL
+    AND SS.SS_QUANTITY > 0;
 
-   select min(ss_sales_price),max(ss_sales_price)
-   from silver.store_sales_clean;
-select count(*)
-from silver.store_sales_clean;
+DESC TABLE SILVER.STORE_SALES_CLEAN;
 
-select count(*)
-from silver.store_sales_clean
-where ss_quantity<=0;
+SELECT MIN(SS_SALES_PRICE), MAX(SS_SALES_PRICE) FROM SILVER.STORE_SALES_CLEAN;
+
+SELECT COUNT(*) FROM BRONZE.STORE_SALES;
+SELECT COUNT(*) FROM SILVER.STORE_SALES_CLEAN
+WHERE SS_SALES_PRICE <= 0;
+
+SELECT COUNT(*) FROM SILVER.STORE_SALES_CLEAN
+WHERE SS_SALES_PRICE IS NULL;
+
+SELECT COUNT(*) FROM SILVER.STORE_SALES_CLEAN
+WHERE SS_QUANTITY <= 0;

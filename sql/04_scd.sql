@@ -1,45 +1,53 @@
-desc table snowflake_sample_data.TPCDS_SF100TCL.CUSTOMER;
+DESC TABLE SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.CUSTOMER;
+DESC TABLE SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.CUSTOMER_ADDRESS;
 
-desc table snowflake_sample_data.tpcds_sf100tcl.customer_address;
-
-USE WAREHOUSE COFFEE_SHOP_WH;
-
+USE WAREHOUSE COMPUTE_WH;
 USE DATABASE SNOWFLAKE_LEARNING_DB;
 
-create or replace table silver.customer_dim(
-       customer_sk number autoincrement,
-       customer_id number,
-       state string,
-       start_date date,
-       end_date date,
-       is_current string
+CREATE OR REPLACE TABLE SILVER.CUSTOMER_DIM(
+    CUSTOMER_SK NUMBER AUTOINCREMENT,
+    CUSTOMER_ID NUMBER,
+    STATE STRING,
+    START_DATE DATE,
+    END_DATE DATE,
+    IS_CURRENT STRING
 );
 
-insert into silver.customer_dim
-(customer_id,state,start_date,end_date,is_current)
-select c.c_customer_sk,ca.ca_state,current_date,null,'Y'
-from snowflake_sample_data.tpcds_sf100tcl.customer c
-join snowflake_sample_data.tpcds_sf100tcl.customer_address ca
-on c.c_current_addr_sk=ca.ca_address_sk;
+--INTIAL LOAD
 
-select count(*) from silver.customer_dim;
+INSERT INTO SILVER.CUSTOMER_DIM (CUSTOMER_ID, STATE, START_DATE, END_DATE, IS_CURRENT)
+SELECT C.C_CUSTOMER_SK, CA.CA_STATE, CURRENT_DATE(), NULL, 'Y'
+FROM SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.CUSTOMER C
+JOIN SNOWFLAKE_SAMPLE_DATA.TPCDS_SF100TCL.CUSTOMER_ADDRESS CA
+ON C.C_CURRENT_ADDR_SK = CA.CA_ADDRESS_SK;
 
-select * from silver.customer_dim limit 5;
+SELECT COUNT(*) FROM SILVER.CUSTOMER_DIM;
+SELECT * FROM SILVER.CUSTOMER_DIM LIMIT 5;
 
---create a small stage
-create or replace table silver.customer_stage as
-select customer_id,state
-from silver.customer_dim
-where is_current='Y';
+--CREATE A SMALL STAGE
+CREATE OR REPLACE TABLE SILVER.CUSTOMER_STAGE AS 
+SELECT CUSTOMER_ID, STATE FROM SILVER.CUSTOMER_DIM
+WHERE IS_CURRENT = 'Y';
 
---manually update one row
-update silver.customer_stage
-set state='TX'
-where customer_id=83369285;
+-- MAUALLY UPDATE ONE ROW
+UPDATE SILVER.CUSTOMER_STAGE
+SET STATE = 'TX'
+WHERE CUSTOMER_ID = 71049106;
 
-select * from silver.customer_stage where customer_id=83369285;
+SELECT * FROM SILVER.CUSTOMER_STAGE
+WHERE CUSTOMER_ID = 71049106;
 
-SELECT *
-FROM silver.customer_dim
-WHERE customer_id = 83369285
-ORDER BY start_date;
+-- IMPLEMENT STAGE 2 USING MERGE
+MERGE INTO SILVER.CUSTOMER_DIM TARGET 
+USING SILVER.CUSTOMER_STAGE SOURCE
+ON TARGET.CUSTOMER_ID = SOURCE.CUSTOMER_ID
+AND TARGET.IS_CURRENT = 'Y'
+WHEN MATCHED AND TARGET.STATE <> SOURCE.STATE THEN 
+    UPDATE SET END_DATE = CURRENT_DATE, IS_CURRENT = 'N'
+WHEN NOT MATCHED THEN 
+    INSERT (CUSTOMER_ID, STATE, START_DATE, END_DATE, IS_CURRENT)
+    VALUES (SOURCE.CUSTOMER_ID, SOURCE.STATE, CURRENT_DATE, NULL, 'Y');
+
+-- VALIDATE SCD BEHAVIOR
+SELECT * FROM SILVER.CUSTOMER_DIM
+WHERE CUSTOMER_ID = 71049106;
